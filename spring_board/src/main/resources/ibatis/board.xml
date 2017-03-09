@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+ 
+<!DOCTYPE sqlMap       
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"       
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="board">
+	<typeAlias alias="boardDTO" type="spring.model.board.BoardDTO" />
+	<delete id="deleteXE" parameterClass="map">
+		DELETE FROM board
+		<dynamic prepend=" WHERE ">
+			<iterate property="boardSeqs" open=" num IN (" close=")"
+				conjunction=",">
+				#boardSeqs[]#
+			</iterate>
+		</dynamic>
+	</delete>
+
+	<!-- 1. update 태그에 넣어서 update라는 메소드를 호출하면 리턴되는 값은 레코드 갯수 -->
+	<update id="create" parameterClass="boardDTO">
+	INSERT INTO board (num, name, passwd, subject, content,
+	regdate, ref, ip, filename, filesize )
+	VALUES((select nvl(max(num),0) + 1 from board), #name#, #passwd#, #subject#,
+	#content# ,sysdate, (select nvl(max(ref),0) + 1 from board),
+	#ip#, #filename#, #filesize#)
+	</update>
+
+	<!-- 2.insert 태그를 사용할 때 selectkey를 사용하면  저장된 값이 resultclass로 반환된다 ( num -> PK값을 오브젝트로 변환해서 리턴 ) -->
+	<!-- <insert id="create" parameterClass="boardDTO"> -->
+	<!-- <selectKey keyProperty="num" resultClass="int"> -->
+	<!-- select nvl(max(num),0) + 1 from board -->
+	<!-- </selectKey> -->
+	<!-- INSERT INTO board (num, name, passwd, subject, content, regdate, ref, 
+		ip, filename, filesize) -->
+	<!-- VALUES(#num#, #name#, #passwd#, #subject#, #content#, sysdate, (select 
+		nvl(max(ref),0) + 1 from board), #ip#, #filename#, -->
+	<!-- #filesize#) -->
+	<!-- </insert> -->
+
+	<!-- 3.insert 태그는 사용하고 있지만 selectkey를 사용하지 않고 있다. -->
+<!-- 	<insert id="create" parameterClass="boardDTO"> -->
+<!-- 		INSERT INTO board (num, name, passwd, -->
+<!-- 		subject, content, regdate, ref, ip, filename, filesize ) -->
+<!-- 		VALUES((select nvl(max(num),0) + 1 from board), #name#, #passwd#, #subject#, -->
+<!-- 		#content#, -->
+<!-- 		sysdate, (select nvl(max(ref),0) + 1 from board),#ip#, #filename#, -->
+<!-- 		#filesize#) -->
+<!-- 	</insert> -->
+
+	<select id="read" parameterClass="int" resultClass="boardDTO">
+		select num,	name, subject, content, filename, filesize, count
+		from board
+		where num =	#num#
+	</select>
+	<select id="readReply" parameterClass="int" resultClass="boardDTO">
+		select
+		num, ref, indent, ansnum, subject from board
+		where num = #num#
+	</select>
+	<update id="update" parameterClass="boardDTO">
+		UPDATE board
+		SET name = #name#,
+		subject = #subject#,
+		content = #content#
+		<dynamic>
+			<isGreaterThan property="filesize" compareValue="0"
+				prepend=",">
+				filename = #filename#,
+				filesize = #filesize#
+			</isGreaterThan>
+		</dynamic>
+		WHERE num = #num#
+	</update>
+
+	<select id="list" parameterClass="map" resultClass="boardDTO">
+		SELECT num, name, subject, to_char(regdate,'YYYY-MM-dd') as regdate,
+		count, indent, filename, filesize, r
+		FROM(
+		SELECT num, name, subject,
+		regdate ,
+		count, indent, filename, filesize, rownum r
+		FROM (
+		SELECT num,
+		name, subject, regdate,
+		count, indent, filename, filesize
+		FROM board
+		<dynamic prepend="where">
+			<isEqual property="col" compareValue="name">
+				name like '%' || #word#
+				|| '%'
+			</isEqual>
+			<isEqual property="col" compareValue="subject">
+				subject like '%' ||
+				#word# || '%'
+			</isEqual>
+			<isEqual property="col" compareValue="content">
+				content like '%' ||
+				#word# || '%'
+			</isEqual>
+			<isEqual property="col" compareValue="subject_content">
+				subject like '%' ||
+				#word# || '%'
+				or
+				content like '%' || #word# || '%'
+			</isEqual>
+		</dynamic>
+		ORDER BY ref DESC, ansnum ASC
+		)
+		)  
+   <![CDATA[    
+   WHERE r >= #sno# and r <= #eno#   
+   ]]>
+	</select>
+
+	<select id="total" parameterClass="map" resultClass="int">
+		select count(*) from board
+		<dynamic prepend="where">
+			<isEqual property="col" compareValue="name">
+				name like '%' || #word#
+				|| '%'
+			</isEqual>
+			<isEqual property="col" compareValue="subject">
+				subject like '%' ||
+				#word# || '%'
+			</isEqual>
+			<isEqual property="col" compareValue="content">
+				content like '%' ||
+				#word# || '%'
+			</isEqual>
+			<isEqual property="col" compareValue="subject_content">
+				subject like '%' ||
+				#word# || '%'
+				or
+				content like '%' || #word# || '%'
+			</isEqual>
+		</dynamic>
+	</select>
+
+	<update id="upCount" parameterClass="int">
+		update board
+		set count =
+		count + 1
+		where num = #num#
+	</update>
+
+	<select id="checkRefnum" parameterClass="int" resultClass="int">
+		select count(*) from board
+		where refnum = #num#
+	</select>
+
+	<select id="passwdCheck" parameterClass="Map" resultClass="int">
+		select count(*) from board
+		where num = #num# and passwd = #passwd#
+	</select>
+
+	<update id="upAnsnum" parameterClass="Map">
+		update board
+		set ansnum =
+		ansnum + 1
+		where ref = #ref# and ansnum > #ansnum#
+	</update>
+
+	<update id="insertReply" parameterClass="boardDTO">
+		INSERT INTO board (num,
+		name, passwd,
+		subject, content, regdate, ref, indent, ansnum,
+		ip,
+		filename, filesize, refnum)
+		VALUES((select nvl(max(num),0) + 1 from board),#name#, #passwd#,
+		#subject#,#content#,sysdate,#ref#,#indent#+1,#ansnum#+1,#ip#,
+		#filename#,#filesize#, #num#)
+	</update>
+
+	<delete id="delete" parameterClass="int">
+		delete from board
+		where num =
+		#num#
+	</delete>
+
+</sqlMap> 

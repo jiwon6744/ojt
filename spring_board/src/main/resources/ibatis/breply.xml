@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+ 
+<!DOCTYPE sqlMap       
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"       
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="breply">
+<typeAlias alias="mReplyDTO" type="spring.model.board.mReplyDTO" />
+  	<select id="rcount" parameterClass="int" resultClass="int">
+     SELECT count(*) FROM breply
+     WHERE num = #num#
+    </select>
+	<update id="create" parameterClass="mReplyDTO">
+		insert into breply(rnum, content, regdate, id, num)
+		values((select nvl(max(rnum),0)+1 from breply), #content#, sysdate, #id#, #num#)
+	</update>
+
+	<select id="read" parameterClass="int" resultClass="mReplyDTO">
+		select * from breply
+		where rnum = #rnum#
+	</select>
+
+	<update id="update" parameterClass="mReplyDTO">
+		update breply
+		set content = #content#
+		where rnum = #rnum#
+
+	</update>
+
+	<delete id="delete" parameterClass="int">
+		delete from breply
+		where rnum = #rnum#
+	</delete>
+	<delete id="bdelete" parameterClass="int">
+		delete from breply
+		where num = #num#
+	</delete>
+	<select id="list" parameterClass="Map" resultClass="mReplyDTO">
+		select rnum, content, to_char(regdate,'yyyy-mm-dd') regdate, id,
+		num, r
+		FROM(
+		select rnum, content, regdate, id, num, rownum r
+		FROM(
+		select rnum, content, regdate, id, num
+		from breply
+		where num = #num#
+		order by rnum DESC
+		)
+	<![CDATA[
+	)WHERE r >= #sno# and r <= #eno#
+	]]>
+	</select>
+
+	<select id="total" resultClass="int" parameterClass="int">
+		select count(*) from breply
+		where num=#num#
+	</select>
+</sqlMap>
+ 

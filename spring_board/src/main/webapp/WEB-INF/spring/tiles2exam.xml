@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE  tiles-definitions PUBLIC 
+    "-//Aapche Software Foundation//DTD Tiles Configuration 2.0//EN" 
+    "http://tiles.apache.org/dtds/tiles-config_2_0.dtd"> 
+
+<tiles-definitions> 
+     <definition name="main" template="/WEB-INF/views/template/template.jsp"> 
+        <put-attribute name="header" value="/WEB-INF/views/template/top.jsp" /> 
+        <put-attribute name="footer" value="/WEB-INF/views/template/bottom.jsp" /> 
+    </definition>
+	<definition name="/home" extends="main">
+		<put-attribute name="title" value="기본 페이지"></put-attribute>
+		<put-attribute name="body" value="/WEB-INF/views/home.jsp" />
+	</definition>
+	<definition name="/board/passwdError" extends="main"> 
+        <put-attribute name="title" value="비밀 번호 검증" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/passwdError.jsp" /> 
+    </definition> 
+	<definition name="/board/list" extends="main">
+		<put-attribute name="title" value="board 목록"></put-attribute>
+		<put-attribute name="body" value="/WEB-INF/views/board/list.jsp" />
+	</definition>   
+    <definition name="/board/create" extends="main"> 
+        <put-attribute name="title" value="board 생성" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/board/createForm.jsp" /> 
+    </definition>  
+    <definition name="/board/update" extends="main"> 
+        <put-attribute name="title" value="board 수정" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/board/updateForm.jsp" /> 
+    </definition>  
+    <definition name="/board/reply" extends="main"> 
+        <put-attribute name="title" value="board 답변" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/board/replyForm.jsp" /> 
+    </definition>  
+    <definition name="/board/delete" extends="main"> 
+        <put-attribute name="title" value="board 삭제" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/board/deleteForm.jsp" /> 
+    </definition>  
+    <definition name="/board/read" extends="main"> 
+        <put-attribute name="title" value="board 조회" ></put-attribute> 
+        <put-attribute name="body" value="/WEB-INF/views/board/read.jsp" /> 
+    </definition>  
+ 
+</tiles-definitions> 
